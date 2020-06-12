@@ -16,6 +16,7 @@ import 'page.dart';
 import 'place_circle.dart';
 import 'place_symbol.dart';
 import 'scrolling_map.dart';
+import 'package:mapbox_gl_example/offline_manager.dart';
 
 final List<ExamplePage> _allPages = <ExamplePage>[
   MapUiPage(),
@@ -26,6 +27,7 @@ final List<ExamplePage> _allPages = <ExamplePage>[
   LinePage(),
   PlaceCirclePage(),
   ScrollingMapPage(),
+  OfflineManagerPage(),
 ];
 
 class MapsDemo extends StatelessWidget {

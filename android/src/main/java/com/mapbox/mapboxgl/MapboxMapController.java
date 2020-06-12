@@ -127,6 +127,7 @@ final class MapboxMapController
   private LocationEngine locationEngine = null;
   private LocalizationPlugin localizationPlugin;
   private Style style;
+  private MapboxOfflineManager mapboxOfflineManager;
 
   MapboxMapController(
     int id,
@@ -294,6 +295,7 @@ final class MapboxMapController
     });
 
     setStyleString(styleStringInitial);
+    // mapboxOfflineManager = new MapboxOfflineManager(context,this.mapboxMap,registrar);
     // updateMyLocationEnabled();
   }
 

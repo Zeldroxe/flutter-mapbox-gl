@@ -37,3 +37,4 @@ part 'src/bitmap.dart';
 part 'src/controller.dart';
 part 'src/mapbox_map.dart';
 part 'src/global.dart';
+part 'src/offline.dart';

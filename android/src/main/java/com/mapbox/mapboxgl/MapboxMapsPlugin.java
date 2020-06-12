@@ -45,6 +45,9 @@ public class MapboxMapsPlugin implements Application.ActivityLifecycleCallbacks 
     MethodChannel methodChannel =
             new MethodChannel(registrar.messenger(), "plugins.flutter.io/mapbox_gl");
     methodChannel.setMethodCallHandler(new GlobalMethodHandler(registrar));
+
+    new MapboxOfflineManager(registrar);
+
   }
 
   @Override

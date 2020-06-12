@@ -494,11 +494,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         circleAnnotationController?.delegate = self
 
         mapReadyResult?(nil)
-        print("asdasd\(channel)")
+        // print("asdasd\(channel)")
         if let channel = channel {
-            print("asdasd2 ")
+            // print("asdasd2 ")
             channel.invokeMethod("map#onStyleLoaded", arguments: nil)
         }
+        _ = OfflineManager(mapview:mapView,registrar: registrar)
     }
     
     func mapView(_ mapView: MGLMapView, shouldChangeFrom oldCamera: MGLMapCamera, to newCamera: MGLMapCamera) -> Bool {
