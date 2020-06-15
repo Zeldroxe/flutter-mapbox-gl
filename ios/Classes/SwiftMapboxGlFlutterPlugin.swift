@@ -19,6 +19,8 @@ public class SwiftMapboxGlFlutterPlugin: NSObject, FlutterPlugin {
                 result(FlutterMethodNotImplemented)
             }
         }
+
+        OfflineManager(registrar: registrar)
     }
 
     private static func getTilesUrl() -> URL {
