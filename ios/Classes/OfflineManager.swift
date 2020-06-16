@@ -20,8 +20,8 @@ class OfflineManager: NSObject {
     init(registrar: FlutterPluginRegistrar) {
         
         //self.mapView = mapview
-        super.init()
         self.channel = FlutterMethodChannel(name: "plugins.flutter.io/offline_map", binaryMessenger: registrar.messenger())
+        super.init()
         self.channel.setMethodCallHandler(onMethodCall)
         // NSLog("\nInit offline")
         
