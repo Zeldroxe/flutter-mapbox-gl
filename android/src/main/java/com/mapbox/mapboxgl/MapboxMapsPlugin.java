@@ -46,8 +46,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware {
         new MethodChannel(binding.getBinaryMessenger(), "plugins.flutter.io/mapbox_gl");
     methodChannel.setMethodCallHandler(new GlobalMethodHandler(binding));
 
-    new MapboxOfflineManager(registrar);
-
     binding
         .getPlatformViewRegistry()
         .registerViewFactory(
@@ -121,6 +119,7 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware {
     MethodChannel methodChannel =
         new MethodChannel(registrar.messenger(), "plugins.flutter.io/mapbox_gl");
     methodChannel.setMethodCallHandler(new GlobalMethodHandler(registrar));
+        new MapboxOfflineManager(registrar);
   }
 
   private static final class ProxyLifecycleProvider
