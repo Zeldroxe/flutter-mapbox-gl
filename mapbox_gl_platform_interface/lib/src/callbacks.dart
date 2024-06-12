@@ -36,7 +36,6 @@ class ArgumentCallbacks<T> {
 
   /// Adds a callback to this collection.
   void add(ArgumentCallback<T> callback) {
-    assert(callback != null);
     _callbacks.add(callback);
   }
 
@@ -45,6 +44,11 @@ class ArgumentCallbacks<T> {
   /// Does nothing, if the callback was not present.
   void remove(ArgumentCallback<T> callback) {
     _callbacks.remove(callback);
+  }
+
+  /// Removes all callbacks
+  void clear() {
+    _callbacks.clear();
   }
 
   /// Whether this collection is empty.

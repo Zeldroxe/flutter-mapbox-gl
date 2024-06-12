@@ -22,22 +22,14 @@ class OfflineManagerMap extends StatefulWidget {
 }
 
 class OfflineManagerMapState extends State<OfflineManagerMap> {
-  MapboxMapController mapController;
+  MapboxMapController? mapController;
 
 //  LatLng _sourcePosition;
-  MethodChannel offlineMC;
+  late MethodChannel offlineMC;
 
   @override
   void initState() {
     super.initState();
-    Widget test = MapboxMap(
-      accessToken: MapsDemo.ACCESS_TOKEN,
-      initialCameraPosition: CameraPosition(
-        // Default location
-        target: LatLng(-33.852, 151.211),
-        zoom: 14.0,
-      ),
-    );
     offlineMC = const MethodChannel('plugins.flutter.io/offline_map');
     offlineMC.setMethodCallHandler(_handleMethodOffline);
   }
@@ -71,7 +63,7 @@ class OfflineManagerMapState extends State<OfflineManagerMap> {
   @protected
   void dispose() {
     super.dispose();
-    mapController.dispose();
+    if (mapController != null) mapController!.dispose();
   }
 
   @override
@@ -116,15 +108,14 @@ class OfflineManagerMapState extends State<OfflineManagerMap> {
                             color: Colors.white,
                             onPressed: () {
                               downloadOfflinePack(
-                                regionName: "SIFM",
-                                bounds: LatLngBounds(northeast: LatLng(47.361094, 7.181070), southwest: LatLng(47.143252, 6.836828)),
-                                minZoom: 10,
-                                maxZoom: 18,
-                                styleUrl: MapboxStyles.MAPBOX_STREETS,
-                                downloadProgressUpdate: (double percentage){
-                                  print(percentage.toString());
-                                }
-                              );
+                                  regionName: "SIFM",
+                                  bounds: LatLngBounds(northeast: LatLng(47.361094, 7.181070), southwest: LatLng(47.143252, 6.836828)),
+                                  minZoom: 10,
+                                  maxZoom: 18,
+                                  styleUrl: MapboxStyles.MAPBOX_STREETS,
+                                  downloadProgressUpdate: (double percentage) {
+                                    print(percentage.toString());
+                                  });
                             },
                           ),
                           Text(
@@ -179,13 +170,13 @@ class OfflineManagerMapState extends State<OfflineManagerMap> {
 
   showDownloadAlertDialog(BuildContext context) {
     // set up the buttons
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("Cancel"),
       onPressed: () {
         Navigator.of(context).pop();
       },
     );
-    Widget downloadButton = FlatButton(
+    Widget downloadButton = TextButton(
       child: Text("Download"),
       onPressed: () {
         Navigator.of(context).pop();
@@ -231,7 +222,7 @@ class OfflineManagerMapState extends State<OfflineManagerMap> {
 class AlertDialogWidget extends StatefulWidget {
   final List<dynamic> downloadedTiles;
   final MethodChannel mapBoxglMC;
-  AlertDialogWidget(this.downloadedTiles, this.mapBoxglMC, {Key key}) : super(key: key);
+  AlertDialogWidget(this.downloadedTiles, this.mapBoxglMC, {Key? key}) : super(key: key);
 
   @override
   _AlertDialogWidgetState createState() => _AlertDialogWidgetState();
@@ -249,9 +240,9 @@ class _AlertDialogWidgetState extends State<AlertDialogWidget> {
         leading: Radio(
           value: i.toString(),
           groupValue: _index,
-          onChanged: (String value) {
+          onChanged: (String? value) {
             setState(() {
-              _index = value;
+              _index = value ?? "";
             });
           },
         ),
@@ -263,7 +254,7 @@ class _AlertDialogWidgetState extends State<AlertDialogWidget> {
 
   Widget build(BuildContext context) {
     // set up the buttons
-    Widget deleteButton = FlatButton(
+    Widget deleteButton = TextButton(
       child: Text("Delete"),
       onPressed: () {
         final Map<String, int> args = <String, int>{"indexToDelete": int.parse(_index)};
@@ -271,13 +262,13 @@ class _AlertDialogWidgetState extends State<AlertDialogWidget> {
         Navigator.of(context).pop();
       },
     );
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("Cancel"),
       onPressed: () {
         Navigator.of(context).pop();
       },
     );
-    Widget navToButton = FlatButton(
+    Widget navToButton = TextButton(
       child: Text("Navigate To"),
       onPressed: () {
         final Map<String, int> args = <String, int>{"indexToNavigate": int.parse(_index)};

@@ -5,12 +5,9 @@ import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.ProgressBar;
 
@@ -38,6 +35,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 
 
+
 public class MapboxOfflineManager implements MethodChannel.MethodCallHandler {
     public static final String JSON_CHARSET = "UTF-8";
     public static final String JSON_FIELD_REGION_NAME = "FIELD_REGION_NAME";
@@ -56,31 +54,44 @@ public class MapboxOfflineManager implements MethodChannel.MethodCallHandler {
     MapboxOfflineManager(PluginRegistry.Registrar registrar){
         this.registrar = registrar;
         context = registrar.context();
-        Mapbox.getInstance(context, getAccessToken(context));
+        Mapbox.getInstance(context, "pk.eyJ1Ijoibm92YWRldiIsImEiOiJjamw2ZTViZnEybmR6M3Bud2xuaHkwd2pwIn0.ZaIS6cuBNI5yaVz2U6caKg");
 
         methodChannel = new MethodChannel(registrar.messenger(), "plugins.flutter.io/offline_map");
         methodChannel.setMethodCallHandler(this);
-    }
 
-    private static String getAccessToken(@NonNull Context context) {
-        try {
-            ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle bundle = ai.metaData;
-            String token = bundle.getString("com.mapbox.token");
-            if (token == null || token.isEmpty()) {
-            throw new NullPointerException();
-            }
-            return token;
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to find an Access Token in the Application meta-data. Maps may not load correctly. " +
-            "Please refer to the installation guide at https://github.com/tobrun/flutter-mapbox-gl#mapbox-access-token " +
-            "for troubleshooting advice." + e.getMessage());
-        }
-        return null;
-    }
 
+        
+        // offlineManager = OfflineManager.getInstance(context);
+        // isEndNotified = false;
+ 
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //     NotificationChannel channel1 = new NotificationChannel(
+        //             CHANNEL_1_ID,
+        //             "Channel 1",
+        //             NotificationManager.IMPORTANCE_HIGH
+        //     );
+
+        //     notificationManager = context.getSystemService(NotificationManager.class);
+        //     notificationManager.createNotificationChannel(channel1);
+
+        // }
+
+
+
+    }
 
     public void downloadRegion(final String regionName, LatLngBounds bounds, double minZoom, double maxZoom, String styleUrl) {
+
+        
+
+        // LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+        // double minZoom = map.getCameraPosition().zoom;
+        // double maxZoom = map.getMaxZoomLevel();
+        // String styleUrl = "mapbox://styles/mapbox/streets-v11";
+        // LatLngBounds bounds = LatLngBounds.from(47.361094, 7.181070, 47.143252, 6.836828);
+        // double minZoom = 11;
+        // double maxZoom = 18;
+
 
         float pixelRatio = context.getResources().getDisplayMetrics().density;
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
@@ -270,6 +281,14 @@ public class MapboxOfflineManager implements MethodChannel.MethodCallHandler {
 
         switch (call.method) {
             case "offline#downloadOnClick":
+                // Log.d(TAG,"DOWNLOAD OFFLINE "+call.argument("downloadName"));
+                // String regionName = call.argument("downloadName");
+                // String regionName = "test";
+
+                // if(regionName.length()==0){
+                //     regionName = map.getProjection().getVisibleRegion().latLngBounds.toString();
+                // }
+
                 String regionName = call.argument("downloadName");
                 LatLngBounds bounds = LatLngBounds.from(call.argument("north"), call.argument("east"), call.argument("south"), call.argument("west")); ;
                 double minZoom = call.argument("minZoom");

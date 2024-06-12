@@ -6,7 +6,7 @@
 
 part of mapbox_gl_platform_interface;
 
-class Symbol {
+class Symbol implements Annotation {
   Symbol(this._id, this.options, [this._data]);
 
   /// A unique identifier for this symbol.
@@ -16,8 +16,8 @@ class Symbol {
 
   String get id => _id;
 
-  final Map _data;
-  Map get data => _data;
+  final Map? _data;
+  Map? get data => _data;
 
   /// The symbol configuration options most recently applied programmatically
   /// via the map controller.
@@ -25,9 +25,24 @@ class Symbol {
   /// The returned value does not reflect any changes made to the symbol through
   /// touch events. Add listeners to the owning map controller to track those.
   SymbolOptions options;
+
+  @override
+  Map<String, dynamic> toGeoJson() {
+    final geojson = options.toGeoJson();
+    geojson["id"] = id;
+    geojson["properties"]["id"] = id;
+
+    return geojson;
+  }
+
+  @override
+  void translate(LatLng delta) {
+    options = options
+        .copyWith(SymbolOptions(geometry: this.options.geometry! + delta));
+  }
 }
 
-dynamic _offsetToJson(Offset offset) {
+dynamic _offsetToJson(Offset? offset) {
   if (offset == null) {
     return null;
   }
@@ -49,6 +64,7 @@ class SymbolOptions {
     this.iconRotate,
     this.iconOffset,
     this.iconAnchor,
+    this.fontNames,
     this.textField,
     this.textSize,
     this.textMaxWidth,
@@ -73,46 +89,47 @@ class SymbolOptions {
     this.draggable,
   });
 
-  final double iconSize;
-  final String iconImage;
-  final double iconRotate;
-  final Offset iconOffset;
-  final String iconAnchor;
-  final String textField;
-  final double textSize;
-  final double textMaxWidth;
-  final double textLetterSpacing;
-  final String textJustify;
-  final String textAnchor;
-  final double textRotate;
-  final String textTransform;
-  final Offset textOffset;
-  final double iconOpacity;
-  final String iconColor;
-  final String iconHaloColor;
-  final double iconHaloWidth;
-  final double iconHaloBlur;
-  final double textOpacity;
-  final String textColor;
-  final String textHaloColor;
-  final double textHaloWidth;
-  final double textHaloBlur;
-  final LatLng geometry;
-  final int zIndex;
-  final bool draggable;
+  final double? iconSize;
+  final String? iconImage;
+  final double? iconRotate;
+  final Offset? iconOffset;
+  final String? iconAnchor;
+
+  /// Not supported on web
+  final List<String>? fontNames;
+  final String? textField;
+  final double? textSize;
+  final double? textMaxWidth;
+  final double? textLetterSpacing;
+  final String? textJustify;
+  final String? textAnchor;
+  final double? textRotate;
+  final String? textTransform;
+  final Offset? textOffset;
+  final double? iconOpacity;
+  final String? iconColor;
+  final String? iconHaloColor;
+  final double? iconHaloWidth;
+  final double? iconHaloBlur;
+  final double? textOpacity;
+  final String? textColor;
+  final String? textHaloColor;
+  final double? textHaloWidth;
+  final double? textHaloBlur;
+  final LatLng? geometry;
+  final int? zIndex;
+  final bool? draggable;
 
   static const SymbolOptions defaultOptions = SymbolOptions();
 
   SymbolOptions copyWith(SymbolOptions changes) {
-    if (changes == null) {
-      return this;
-    }
     return SymbolOptions(
       iconSize: changes.iconSize ?? iconSize,
       iconImage: changes.iconImage ?? iconImage,
       iconRotate: changes.iconRotate ?? iconRotate,
       iconOffset: changes.iconOffset ?? iconOffset,
       iconAnchor: changes.iconAnchor ?? iconAnchor,
+      fontNames: changes.fontNames ?? fontNames,
       textField: changes.textField ?? textField,
       textSize: changes.textSize ?? textSize,
       textMaxWidth: changes.textMaxWidth ?? textMaxWidth,
@@ -138,7 +155,7 @@ class SymbolOptions {
     );
   }
 
-  dynamic toJson() {
+  dynamic toJson([bool addGeometry = true]) {
     final Map<String, dynamic> json = <String, dynamic>{};
 
     void addIfPresent(String fieldName, dynamic value) {
@@ -152,6 +169,7 @@ class SymbolOptions {
     addIfPresent('iconRotate', iconRotate);
     addIfPresent('iconOffset', _offsetToJson(iconOffset));
     addIfPresent('iconAnchor', iconAnchor);
+    addIfPresent('fontNames', fontNames);
     addIfPresent('textField', textField);
     addIfPresent('textSize', textSize);
     addIfPresent('textMaxWidth', textMaxWidth);
@@ -171,9 +189,22 @@ class SymbolOptions {
     addIfPresent('textHaloColor', textHaloColor);
     addIfPresent('textHaloWidth', textHaloWidth);
     addIfPresent('textHaloBlur', textHaloBlur);
-    addIfPresent('geometry', geometry?.toJson());
+    if (addGeometry) {
+      addIfPresent('geometry', geometry?.toJson());
+    }
     addIfPresent('zIndex', zIndex);
     addIfPresent('draggable', draggable);
     return json;
+  }
+
+  Map<String, dynamic> toGeoJson() {
+    return {
+      "type": "Feature",
+      "properties": toJson(false),
+      "geometry": {
+        "type": "Point",
+        "coordinates": geometry!.toGeoJsonCoordinates()
+      }
+    };
   }
 }

@@ -26,25 +26,28 @@ class Convert {
       sink.setMinMaxZoomPreference(options['minMaxZoomPreference'][0],
           options['minMaxZoomPreference'][1]);
     }
-    if (options.containsKey('rotateGesturesEnabled')) {
-      sink.setRotateGesturesEnabled(options['rotateGesturesEnabled']);
+    if (options['rotateGesturesEnabled'] != null &&
+        options['scrollGesturesEnabled'] != null &&
+        options['tiltGesturesEnabled'] != null &&
+        options['zoomGesturesEnabled'] != null &&
+        options['doubleClickZoomEnabled'] != null) {
+      sink.setGestures(
+          rotateGesturesEnabled: options['rotateGesturesEnabled'],
+          scrollGesturesEnabled: options['scrollGesturesEnabled'],
+          tiltGesturesEnabled: options['tiltGesturesEnabled'],
+          zoomGesturesEnabled: options['zoomGesturesEnabled'],
+          doubleClickZoomEnabled: options['doubleClickZoomEnabled']);
     }
-    if (options.containsKey('scrollGesturesEnabled')) {
-      sink.setScrollGesturesEnabled(options['scrollGesturesEnabled']);
-    }
-    if (options.containsKey('tiltGesturesEnabled')) {
-      sink.setTiltGesturesEnabled(options['tiltGesturesEnabled']);
-    }
+
     if (options.containsKey('trackCameraPosition')) {
       sink.setTrackCameraPosition(options['trackCameraPosition']);
     }
-    if (options.containsKey('zoomGesturesEnabled')) {
-      sink.setZoomGesturesEnabled(options['zoomGesturesEnabled']);
-    }
+
     if (options.containsKey('myLocationEnabled')) {
       sink.setMyLocationEnabled(options['myLocationEnabled']);
     }
     if (options.containsKey('myLocationTrackingMode')) {
+      //Should not be invoked before sink.setMyLocationEnabled()
       sink.setMyLocationTrackingMode(options['myLocationTrackingMode']);
     }
     if (options.containsKey('myLocationRenderMode')) {
@@ -55,11 +58,18 @@ class Convert {
           options['logoViewMargins'][0], options['logoViewMargins'][1]);
     }
     if (options.containsKey('compassViewPosition')) {
-      sink.setCompassGravity(options['compassViewPosition']);
+      final position =
+          CompassViewPosition.values[options['compassViewPosition']];
+      sink.setCompassAlignment(position);
     }
     if (options.containsKey('compassViewMargins')) {
       sink.setCompassViewMargins(
           options['compassViewMargins'][0], options['compassViewMargins'][1]);
+    }
+    if (options.containsKey('attributionButtonPosition')) {
+      final position = AttributionButtonPosition
+          .values[options['attributionButtonPosition']];
+      sink.setAttributionButtonAlignment(position);
     }
     if (options.containsKey('attributionButtonMargins')) {
       sink.setAttributionButtonMargins(options['attributionButtonMargins'][0],
@@ -90,7 +100,10 @@ class Convert {
         );
       case 'newLatLngBounds':
         final bounds = json[1];
-        final padding = json[2];
+        final left = json[2];
+        final top = json[3];
+        final right = json[4];
+        final bottom = json[5];
         final camera = mapboxMap.cameraForBounds(
             LngLatBounds(
               LngLat(bounds[0][1], bounds[0][0]),
@@ -98,10 +111,10 @@ class Convert {
             ),
             {
               'padding': {
-                'top': padding,
-                'bottom': padding,
-                'left': padding,
-                'right': padding
+                'top': top,
+                'bottom': bottom,
+                'left': left,
+                'right': right,
               }
             });
         return camera;
@@ -199,7 +212,10 @@ class Convert {
       properties['iconRotate'] = options.iconRotate;
     }
     if (options.iconOffset != null) {
-      properties['iconOffset'] = [options.iconOffset.dx, options.iconOffset.dy];
+      properties['iconOffset'] = [
+        options.iconOffset!.dx,
+        options.iconOffset!.dy
+      ];
     }
     if (options.iconAnchor != null) {
       properties['iconAnchor'] = options.iconAnchor;
@@ -229,7 +245,10 @@ class Convert {
       properties['textTransform'] = options.textTransform;
     }
     if (options.textOffset != null) {
-      properties['textOffset'] = [options.textOffset.dx, options.textOffset.dy];
+      properties['textOffset'] = [
+        options.textOffset!.dx,
+        options.textOffset!.dy
+      ];
     }
     if (options.iconOpacity != null) {
       properties['iconOpacity'] = options.iconOpacity;
@@ -264,7 +283,7 @@ class Convert {
     if (options.geometry != null) {
       geometry = Geometry(
         type: geometry.type,
-        coordinates: [options.geometry.longitude, options.geometry.latitude],
+        coordinates: [options.geometry!.longitude, options.geometry!.latitude],
       );
     }
     if (options.zIndex != null) {
@@ -306,7 +325,7 @@ class Convert {
     if (options.geometry != null) {
       geometry = Geometry(
         type: geometry.type,
-        coordinates: options.geometry
+        coordinates: options.geometry!
             .map((latLng) => [latLng.longitude, latLng.latitude])
             .toList(),
       );
@@ -345,11 +364,65 @@ class Convert {
     if (options.geometry != null) {
       geometry = Geometry(
         type: geometry.type,
-        coordinates: [options.geometry.longitude, options.geometry.latitude],
+        coordinates: [options.geometry!.longitude, options.geometry!.latitude],
       );
     }
     if (options.draggable != null) {
       properties['draggable'] = options.draggable;
+    }
+    return feature.copyWith(properties: properties, geometry: geometry);
+  }
+
+  static List<List<List<double>>> fillGeometryToFeatureGeometry(
+      List<List<LatLng>> geom) {
+    List<List<List<double>>> convertedFill = [];
+    for (final ring in geom) {
+      List<List<double>> convertedRing = [];
+      for (final coords in ring) {
+        convertedRing.add([coords.longitude, coords.latitude]);
+      }
+      convertedFill.add(convertedRing);
+    }
+    return convertedFill;
+  }
+
+  static List<List<LatLng>> featureGeometryToFillGeometry(
+      List<List<List<double>>> geom) {
+    List<List<LatLng>> convertedFill = [];
+    for (final ring in geom) {
+      List<LatLng> convertedRing = [];
+      for (final coords in ring) {
+        convertedRing.add(LatLng(coords[1], coords[0]));
+      }
+      convertedFill.add(convertedRing);
+    }
+    return convertedFill;
+  }
+
+  static Feature intepretFillOptions(FillOptions options, Feature feature) {
+    var properties = feature.properties;
+    var geometry = feature.geometry;
+    if (options.draggable != null) {
+      properties['draggable'] = options.draggable;
+    }
+    if (options.fillColor != null) {
+      properties['fillColor'] = options.fillColor;
+    }
+    if (options.fillOpacity != null) {
+      properties['fillOpacity'] = options.fillOpacity;
+    }
+    if (options.fillOutlineColor != null) {
+      properties['fillOutlineColor'] = options.fillOutlineColor;
+    }
+    if (options.fillPattern != null) {
+      properties['fillPattern'] = options.fillPattern;
+    }
+
+    if (options.geometry != null) {
+      geometry = Geometry(
+        type: geometry.type,
+        coordinates: fillGeometryToFeatureGeometry(options.geometry!),
+      );
     }
     return feature.copyWith(properties: properties, geometry: geometry);
   }

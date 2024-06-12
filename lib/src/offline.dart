@@ -9,15 +9,15 @@ final MethodChannel _offlineChannel = MethodChannel('plugins.flutter.io/offline_
 /// Copy tiles db file passed in to the tiles cache directory (sideloaded) to
 /// make tiles available offline.
 void downloadOfflinePack({
-  String regionName,
-  LatLngBounds bounds,
-  double minZoom,
-  double maxZoom,
-  String styleUrl,
-  Function downloadProgressUpdate,
-  Function downloadProgressComplete,
-  Function downloadProgressError,
-  Function downloadProgressLimitExceeded,
+  required String regionName,
+  required LatLngBounds bounds,
+  required double minZoom,
+  required double maxZoom,
+  required String styleUrl,
+  Function? downloadProgressUpdate,
+  Function? downloadProgressComplete,
+  Function? downloadProgressError,
+  Function? downloadProgressLimitExceeded,
 }) async {
   _offlineChannel.setMethodCallHandler((MethodCall methodCall) {
     switch (methodCall.method) {
@@ -34,6 +34,7 @@ void downloadOfflinePack({
         if (downloadProgressLimitExceeded != null) downloadProgressLimitExceeded(methodCall.arguments);
         break;
     }
+    return Future.value(true);
   });
 
   final Map<String, dynamic> args = <String, dynamic>{

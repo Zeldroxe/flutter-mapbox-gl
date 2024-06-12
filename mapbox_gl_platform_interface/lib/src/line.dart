@@ -6,7 +6,7 @@
 
 part of mapbox_gl_platform_interface;
 
-class Line {
+class Line implements Annotation {
   Line(this._id, this.options, [this._data]);
 
   /// A unique identifier for this line.
@@ -16,9 +16,9 @@ class Line {
 
   String get id => _id;
 
-  final Map _data;
+  final Map? _data;
 
-  Map get data => _data;
+  Map? get data => _data;
 
   /// The line configuration options most recently applied programmatically
   /// via the map controller.
@@ -26,6 +26,20 @@ class Line {
   /// The returned value does not reflect any changes made to the line through
   /// touch events. Add listeners to the owning map controller to track those.
   LineOptions options;
+
+  Map<String, dynamic> toGeoJson() {
+    final geojson = options.toGeoJson();
+    geojson["id"] = id;
+    geojson["properties"]["id"] = id;
+
+    return geojson;
+  }
+
+  @override
+  void translate(LatLng delta) {
+    options = options.copyWith(LineOptions(
+        geometry: this.options.geometry?.map((e) => e + delta).toList()));
+  }
 }
 
 /// Configuration options for [Line] instances.
@@ -50,23 +64,20 @@ class LineOptions {
     this.draggable,
   });
 
-  final String lineJoin;
-  final double lineOpacity;
-  final String lineColor;
-  final double lineWidth;
-  final double lineGapWidth;
-  final double lineOffset;
-  final double lineBlur;
-  final String linePattern;
-  final List<LatLng> geometry;
-  final bool draggable;
+  final String? lineJoin;
+  final double? lineOpacity;
+  final String? lineColor;
+  final double? lineWidth;
+  final double? lineGapWidth;
+  final double? lineOffset;
+  final double? lineBlur;
+  final String? linePattern;
+  final List<LatLng>? geometry;
+  final bool? draggable;
 
   static const LineOptions defaultOptions = LineOptions();
 
   LineOptions copyWith(LineOptions changes) {
-    if (changes == null) {
-      return this;
-    }
     return LineOptions(
       lineJoin: changes.lineJoin ?? lineJoin,
       lineOpacity: changes.lineOpacity ?? lineOpacity,
@@ -81,7 +92,7 @@ class LineOptions {
     );
   }
 
-  dynamic toJson() {
+  dynamic toJson([bool addGeometry = true]) {
     final Map<String, dynamic> json = <String, dynamic>{};
 
     void addIfPresent(String fieldName, dynamic value) {
@@ -98,9 +109,22 @@ class LineOptions {
     addIfPresent('lineOffset', lineOffset);
     addIfPresent('lineBlur', lineBlur);
     addIfPresent('linePattern', linePattern);
-    addIfPresent('geometry',
-        geometry?.map((LatLng latLng) => latLng.toJson())?.toList());
+    if (addGeometry) {
+      addIfPresent('geometry',
+          geometry?.map((LatLng latLng) => latLng.toJson()).toList());
+    }
     addIfPresent('draggable', draggable);
     return json;
+  }
+
+  Map<String, dynamic> toGeoJson() {
+    return {
+      "type": "Feature",
+      "properties": toJson(false),
+      "geometry": {
+        "type": "LineString",
+        "coordinates": geometry!.map((c) => c.toGeoJsonCoordinates()).toList()
+      }
+    };
   }
 }
